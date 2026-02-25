@@ -14,11 +14,13 @@ export default function Employees() {
     setError(null)
     getEmployees()
       .then((res) => {
-        const data = res.data?.data ?? res.data
-        setEmployees(Array.isArray(data) ? data : [])
+        const data = res.data
+        const list = data?.employees ?? data?.data
+        setEmployees(Array.isArray(list) ? list : [])
       })
       .catch((err) => {
-        setError(err.response?.data?.message || err.message || 'Failed to load employees')
+        const msg = err.userMessage || err.response?.data?.message || err.message || 'Failed to load employees'
+        setError(msg)
         setEmployees([])
       })
       .finally(() => setLoading(false))
@@ -34,7 +36,7 @@ export default function Employees() {
     createEmployee(payload)
       .then(() => fetchEmployees())
       .catch((err) => {
-        setError(err.response?.data?.message || err.message || 'Failed to add employee')
+        setError(err.userMessage || err.response?.data?.message || err.message || 'Failed to add employee')
       })
       .finally(() => setSubmitLoading(false))
   }
@@ -45,7 +47,7 @@ export default function Employees() {
     deleteEmployee(id)
       .then(() => fetchEmployees())
       .catch((err) => {
-        setError(err.response?.data?.message || err.message || 'Failed to delete employee')
+        setError(err.userMessage || err.response?.data?.message || err.message || 'Failed to delete employee')
       })
   }
 

@@ -22,7 +22,10 @@ export default function Dashboard() {
         }
       })
       .catch((err) => {
-        if (!cancelled) setError(err.response?.data?.message || err.message || 'Failed to load stats')
+        if (!cancelled) {
+          const msg = err.userMessage || err.response?.data?.message || err.message || 'Failed to load stats'
+          setError(msg)
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)

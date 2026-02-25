@@ -28,7 +28,7 @@ export default function AttendanceForm({ employees, onSubmit, loading }) {
           >
             <option value="">Select employee</option>
             {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
+              <option key={emp.id} value={emp.employee_id}>
                 {emp.name} ({emp.email})
               </option>
             ))}

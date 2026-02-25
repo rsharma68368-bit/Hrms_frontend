@@ -1,4 +1,5 @@
-export default function AttendanceTable({ records, loading }) {
+export default function AttendanceTable({ records, employees = [], loading }) {
+  const getName = (employeeId) => employees.find((e) => e.employee_id === employeeId)?.name ?? '—'
   if (loading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
@@ -38,20 +39,20 @@ export default function AttendanceTable({ records, loading }) {
             {records.map((rec) => (
               <tr key={rec.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {rec.employeeName || rec.employee?.name || '—'}
+                  {rec.employeeName ?? rec.employee?.name ?? getName(rec.employee_id)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {new Date(rec.date).toLocaleDateString()}
+                  {new Date(rec.date ?? rec.attendance_date).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      rec.status === 'present'
+                      (rec.status ?? '').toLowerCase() === 'present'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}
                   >
-                    {rec.status === 'present' ? 'Present' : 'Absent'}
+                    {(rec.status ?? '').toLowerCase() === 'present' ? 'Present' : 'Absent'}
                   </span>
                 </td>
               </tr>

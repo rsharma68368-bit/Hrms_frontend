@@ -16,7 +16,9 @@ export default function Attendance() {
     getEmployees()
       .then((res) => {
         const data = res.data?.data ?? res.data
-        setEmployees(Array.isArray(data) ? data : [])
+        const list = data?.employees ?? data
+        const arr = Array.isArray(list) ? list : []
+        setEmployees(arr)
       })
       .catch(() => setEmployees([]))
       .finally(() => setLoadingEmployees(false))
@@ -27,11 +29,12 @@ export default function Attendance() {
     setError(null)
     getAttendance()
       .then((res) => {
-        const data = res.data?.data ?? res.data
-        setRecords(Array.isArray(data) ? data : [])
+        const data = res.data
+        const list = data?.attendance ?? data?.data
+        setRecords(Array.isArray(list) ? list : [])
       })
       .catch((err) => {
-        setError(err.response?.data?.message || err.message || 'Failed to load attendance')
+        setError(err.userMessage || err.response?.data?.message || err.message || 'Failed to load attendance')
         setRecords([])
       })
       .finally(() => setLoadingRecords(false))
@@ -44,10 +47,15 @@ export default function Attendance() {
   const handleMark = (payload) => {
     setSubmitLoading(true)
     setError(null)
-    markAttendance(payload)
+    const apiPayload = {
+      employee_id: payload.employeeId,
+      date: payload.date,
+      status: payload.status === 'present' ? 'Present' : 'Absent',
+    }
+    markAttendance(apiPayload)
       .then(() => fetchRecords())
       .catch((err) => {
-        setError(err.response?.data?.message || err.message || 'Failed to mark attendance')
+        setError(err.userMessage || err.response?.data?.message || err.message || 'Failed to mark attendance')
       })
       .finally(() => setSubmitLoading(false))
   }
@@ -69,7 +77,7 @@ export default function Attendance() {
           />
         </div>
         <div className="lg:col-span-2">
-          <AttendanceTable records={records} loading={loadingRecords} />
+          <AttendanceTable records={records} employees={employees} loading={loadingRecords} />
         </div>
       </div>
     </div>
