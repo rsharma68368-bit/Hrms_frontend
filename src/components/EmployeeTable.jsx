@@ -1,67 +1,165 @@
+import { useState } from 'react'
+import { Card, CardContent } from './ui/Card'
+import Button from './ui/Button'
+import Modal from './ui/Modal'
+import Skeleton from './ui/Skeleton'
+import { Trash2, Users } from 'lucide-react'
+
+function TableSkeleton() {
+  return (
+    <Card>
+      <CardContent className="p-0">
+        <div className="space-y-4 p-6">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex items-center gap-4">
+              <Skeleton className="h-4 flex-1" />
+              <Skeleton className="h-4 flex-1" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-9 w-20 rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function EmptyState() {
+  return (
+    <Card>
+      <CardContent className="flex flex-col items-center justify-center py-16">
+        <div
+          className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted"
+          aria-hidden
+        >
+          <Users className="h-7 w-7 text-muted-foreground" />
+        </div>
+        <p className="text-base font-medium text-foreground">No employees yet</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Add an employee using the form on the left
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function EmployeeTable({ employees, onDelete, loading }) {
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-        <p className="mt-3 text-gray-500">Loading employees...</p>
-      </div>
-    )
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDeleteClick = (emp) => setDeleteTarget(emp)
+  const handleCloseModal = () => {
+    if (!deleting) setDeleteTarget(null)
+  }
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    const p = onDelete(deleteTarget.id)
+    if (p && typeof p.then === 'function') {
+      p.finally(() => {
+        setDeleting(false)
+        setDeleteTarget(null)
+      })
+    } else {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
   }
 
-  if (!employees || employees.length === 0) {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-gray-500">
-        <p className="text-lg">No employees yet.</p>
-        <p className="mt-1 text-sm">Add an employee using the form above.</p>
-      </div>
-    )
-  }
+  if (loading) return <TableSkeleton />
+
+  if (!employees?.length) return <EmptyState />
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Department
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {employees.map((emp) => (
-              <tr key={emp.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {emp.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {emp.email}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {emp.department || '—'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                  <button
-                    onClick={() => onDelete(emp.id)}
-                    className="text-red-600 hover:text-red-800 font-medium"
-                  >
-                    Delete
-                  </button>
-                </td>
+    <>
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm" role="table">
+            <thead>
+              <tr className="border-b border-border bg-muted/50">
+                <th
+                  className="h-12 px-6 text-left align-middle font-medium text-muted-foreground"
+                  scope="col"
+                >
+                  Name
+                </th>
+                <th
+                  className="h-12 px-6 text-left align-middle font-medium text-muted-foreground"
+                  scope="col"
+                >
+                  Email
+                </th>
+                <th
+                  className="h-12 px-6 text-left align-middle font-medium text-muted-foreground"
+                  scope="col"
+                >
+                  Department
+                </th>
+                <th
+                  className="h-12 px-6 text-right align-middle font-medium text-muted-foreground"
+                  scope="col"
+                >
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+            </thead>
+            <tbody>
+              {employees.map((emp) => (
+                <tr
+                  key={emp.id}
+                  className="border-b border-border transition-colors hover:bg-muted/50"
+                >
+                  <td className="px-6 py-4 align-middle font-medium text-foreground">
+                    {emp.name}
+                  </td>
+                  <td className="px-6 py-4 align-middle text-muted-foreground">
+                    {emp.email}
+                  </td>
+                  <td className="px-6 py-4 align-middle text-muted-foreground">
+                    {emp.department || '—'}
+                  </td>
+                  <td className="px-6 py-4 text-right align-middle">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteClick(emp)}
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={`Delete ${emp.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Modal
+        open={!!deleteTarget}
+        onClose={handleCloseModal}
+        title="Delete employee"
+        description={
+          deleteTarget
+            ? `Are you sure you want to remove ${deleteTarget.name}? This cannot be undone.`
+            : ''
+        }
+        footer={
+          <>
+            <Button variant="outline" onClick={handleCloseModal} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={deleting}
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </>
+        }
+      />
+    </>
   )
 }

@@ -1,8 +1,75 @@
 import { useState, useEffect } from 'react'
 import { getDashboardStats } from '../api/api'
+import { Card, CardContent, CardHeader } from '../components/ui/Card'
+import Skeleton from '../components/ui/Skeleton'
+import Alert from '../components/ui/Alert'
+import { Users, UserCheck, UserX } from 'lucide-react'
+
+const statConfig = [
+  {
+    key: 'totalEmployees',
+    label: 'Total Employees',
+    icon: Users,
+    color: 'text-primary',
+    bg: 'bg-primary/8',
+  },
+  {
+    key: 'presentToday',
+    label: 'Present Today',
+    icon: UserCheck,
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-500/10',
+  },
+  {
+    key: 'absentToday',
+    label: 'Absent Today',
+    icon: UserX,
+    color: 'text-amber-600',
+    bg: 'bg-amber-500/10',
+  },
+]
+
+function StatCard({ label, value, icon: Icon, color, bg }) {
+  return (
+    <Card className="overflow-hidden transition-all duration-200 hover:shadow-soft-lg">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <span className="text-sm font-medium text-muted-foreground">{label}</span>
+        <span
+          className={`flex h-9 w-9 items-center justify-center rounded-lg ${bg} ${color}`}
+          aria-hidden
+        >
+          <Icon className="h-5 w-5" />
+        </span>
+      </CardHeader>
+      <CardContent>
+        <p className="text-2xl font-semibold tracking-tight text-foreground">
+          {value}
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
+function StatSkeleton() {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-9 w-9 rounded-lg" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-8 w-16" />
+      </CardContent>
+    </Card>
+  )
+}
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ totalEmployees: 0, presentToday: 0, absentToday: 0 })
+  const [stats, setStats] = useState({
+    totalEmployees: 0,
+    presentToday: 0,
+    absentToday: 0,
+  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -23,21 +90,37 @@ export default function Dashboard() {
       })
       .catch((err) => {
         if (!cancelled) {
-          const msg = err.userMessage || err.response?.data?.message || err.message || 'Failed to load stats'
+          const msg =
+            err.userMessage ||
+            err.response?.data?.message ||
+            err.message ||
+            'Failed to load stats'
           setError(msg)
         }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-center min-h-[200px]">
-          <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+            Overview
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Key metrics at a glance
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <StatSkeleton key={i} />
+          ))}
         </div>
       </div>
     )
@@ -45,32 +128,39 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+            Overview
+          </h2>
         </div>
+        <Alert variant="destructive" title="Error">
+          {error}
+        </Alert>
       </div>
     )
   }
 
-  const cards = [
-    { label: 'Total Employees', value: stats.totalEmployees, bg: 'bg-white', border: 'border-gray-200' },
-    { label: 'Present Today', value: stats.presentToday, bg: 'bg-white', border: 'border-gray-200' },
-    { label: 'Absent Today', value: stats.absentToday, bg: 'bg-white', border: 'border-gray-200' },
-  ]
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-8">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {cards.map((card) => (
-          <div
-            key={card.label}
-            className={`${card.bg} rounded-lg border ${card.border} p-6 shadow-sm`}
-          >
-            <p className="text-sm font-medium text-gray-500">{card.label}</p>
-            <p className="mt-2 text-3xl font-semibold text-gray-900">{card.value}</p>
-          </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+          Overview
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Key metrics at a glance
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {statConfig.map((config) => (
+          <StatCard
+            key={config.key}
+            label={config.label}
+            value={stats[config.key]}
+            icon={config.icon}
+            color={config.color}
+            bg={config.bg}
+          />
         ))}
       </div>
     </div>

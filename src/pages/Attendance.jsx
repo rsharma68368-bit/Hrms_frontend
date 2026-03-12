@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getEmployees, getAttendance, markAttendance } from '../api/api'
 import AttendanceForm from '../components/AttendanceForm'
 import AttendanceTable from '../components/AttendanceTable'
+import Alert from '../components/ui/Alert'
 
 export default function Attendance() {
   const [employees, setEmployees] = useState([])
@@ -34,7 +35,12 @@ export default function Attendance() {
         setRecords(Array.isArray(list) ? list : [])
       })
       .catch((err) => {
-        setError(err.userMessage || err.response?.data?.message || err.message || 'Failed to load attendance')
+        setError(
+          err.userMessage ||
+            err.response?.data?.message ||
+            err.message ||
+            'Failed to load attendance'
+        )
         setRecords([])
       })
       .finally(() => setLoadingRecords(false))
@@ -55,20 +61,30 @@ export default function Attendance() {
     markAttendance(apiPayload)
       .then(() => fetchRecords())
       .catch((err) => {
-        setError(err.userMessage || err.response?.data?.message || err.message || 'Failed to mark attendance')
+        setError(
+          err.userMessage ||
+            err.response?.data?.message ||
+            err.message ||
+            'Failed to mark attendance'
+        )
       })
       .finally(() => setSubmitLoading(false))
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-8">Attendance</h1>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+          Attendance
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Mark and view daily attendance
+        </p>
+      </div>
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
-        </div>
+        <Alert variant="destructive">{error}</Alert>
       )}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
           <AttendanceForm
             employees={employees}
@@ -77,7 +93,11 @@ export default function Attendance() {
           />
         </div>
         <div className="lg:col-span-2">
-          <AttendanceTable records={records} employees={employees} loading={loadingRecords} />
+          <AttendanceTable
+            records={records}
+            employees={employees}
+            loading={loadingRecords}
+          />
         </div>
       </div>
     </div>
